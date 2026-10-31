@@ -1,0 +1,1 @@
+Frame OS build configuration for Raspberry Pi Zero 2W

@@ -1,0 +1,3 @@
+Common targets are:
+    bitbake frame-image-dev
+    bitbake frame-image
