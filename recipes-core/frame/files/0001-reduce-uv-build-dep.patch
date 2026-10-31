@@ -1,0 +1,21 @@
+From a7c7d18fdb1db9353c572897bdce55d6d3f62df6 Mon Sep 17 00:00:00 2001
+From: Joseph Abbey <me@josephabbey.dev>
+Date: Thu, 29 Oct 2026 09:42:21 +0000
+Subject: [PATCH] reduce-uv-build-dep
+Upstream-Status: Pending
+
+---
+ pyproject.toml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pyproject.toml b/pyproject.toml
+index 7541ee1..dd40b91 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -20,5 +20,5 @@ display = "frame:display"
+ debug = "frame:debug"
+ 
+ [build-system]
+-requires = ["uv_build>=0.13.5,<0.14"]
++requires = ["uv_build>=0.10.0"]
+ build-backend = "uv_build"

@@ -1,0 +1,91 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          usb-gadget
+# Required-start:    udev
+# Required-stop:
+# Default-start:     S
+# Default-stop:
+# Short-description: Setup USB Ethernet Gadget via ConfigFS
+### END INIT INFO
+
+GADGET_ROOT="/sys/kernel/config/usb_gadget"
+G1="$GADGET_ROOT/g1"
+
+case "$1" in
+    start)
+        echo "Setting up USB Ethernet Gadget..."
+        
+        # 1. Explicitly load required kernel modules
+        modprobe libcomposite 2>/dev/null || true
+        modprobe usb_f_ecm 2>/dev/null || true
+        
+        # 2. Mount configfs if not already mounted
+        if ! mountpoint -q /sys/kernel/config; then
+            mount -t configfs none /sys/kernel/config 2>/dev/null || true
+        fi
+        
+        # 3. Clean up any existing gadget state safely
+        if [ -d "$G1" ]; then
+            echo "" > "$G1/UDC" 2>/dev/null
+            sleep 1
+            rm -f "$G1/configs/c.1/ecm.usb0" 2>/dev/null
+            rmdir "$G1/functions/ecm.usb0" 2>/dev/null
+            rmdir "$G1/configs/c.1/strings/0x409" 2>/dev/null
+            rmdir "$G1/configs/c.1" 2>/dev/null
+            rmdir "$G1/strings/0x409" 2>/dev/null
+            rmdir "$G1" 2>/dev/null
+        fi
+        
+        # 4. Create gadget directory structure using absolute paths
+        mkdir -p "$G1"
+        
+        # 5. Set Vendor and Product IDs (CDC ECM composite)
+        echo 0x1d6b > "$G1/idVendor"  # Linux Foundation
+        echo 0x0104 > "$G1/idProduct" # Multifunction Composite Gadget
+        echo 0x0100 > "$G1/bcdDevice"
+        echo 0x0200 > "$G1/bcdUSB"
+        
+        # 6. Create English strings
+        mkdir -p "$G1/strings/0x409"
+        echo "1234567890" > "$G1/strings/0x409/serialnumber"
+        echo "Yocto Project" > "$G1/strings/0x409/manufacturer"
+        echo "RPi Zero 2 W USB Ethernet" > "$G1/strings/0x409/product"
+        
+        # 7. Create configuration instance
+        mkdir -p "$G1/configs/c.1/strings/0x409"
+        printf "%s\n" "CDC Ethernet Config" > "$G1/configs/c.1/strings/0x409/configuration"
+        echo 250 > "$G1/configs/c.1/max_power"
+        
+        # 8. Create the network function (ecm)
+        mkdir -p "$G1/functions/ecm.usb0"
+        
+        # 9. Link function to configuration
+        ln -s "$G1/functions/ecm.usb0" "$G1/configs/c.1/"
+        
+        # 10. Bind to the available UDC controller
+        UDC=$(ls /sys/class/udc 2>/dev/null | head -n 1)
+        if [ -n "$UDC" ]; then
+            echo "$UDC" > "$G1/UDC"
+            echo "USB Gadget successfully bound to $UDC"
+        else
+            echo "ERROR: No UDC found for USB gadget!"
+        fi
+        ;;
+    stop)
+        if [ -d "$G1" ]; then
+            echo "" > "$G1/UDC" 2>/dev/null
+            sleep 1
+            rm -f "$G1/configs/c.1/ecm.usb0" 2>/dev/null
+            rmdir "$G1/functions/ecm.usb0" 2>/dev/null
+            rmdir "$G1/configs/c.1/strings/0x409" 2>/dev/null
+            rmdir "$G1/configs/c.1" 2>/dev/null
+            rmdir "$G1/strings/0x409" 2>/dev/null
+            rmdir "$G1" 2>/dev/null
+        fi
+        echo "USB Ethernet Gadget stopped."
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac

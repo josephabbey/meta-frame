@@ -1,0 +1,22 @@
+From 76c331d9ceb58730327eebc7103aa0804e3448ab Mon Sep 17 00:00:00 2001
+From: Joseph Abbey <me@josephabbey.dev>
+Date: Mon, 26 Oct 2026 17:31:55 +0000
+Subject: [PATCH] python3-material-color-utilities-fix-install
+Upstream-Status: Inappropriate [Yocto specific]
+
+---
+ CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index bf5cf3c..55da386 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -40,4 +40,6 @@ target_link_libraries(
+ target_compile_definitions(_core PRIVATE VERSION_INFO=${PROJECT_VERSION})
+ 
+ # Installation step
+-install(TARGETS _core LIBRARY DESTINATION ${SKBUILD_PROJECT_NAME})
++install(TARGETS _core
++    LIBRARY DESTINATION ${PYTHON_SITEPACKAGES_DIR}/material_color_utilities
++)
