@@ -1,0 +1,2 @@
+files/Pictures/**/*
+!files/Pictures/.gitkeep
